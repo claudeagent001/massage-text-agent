@@ -205,7 +205,7 @@ adminRouter.post("/api/cancel", express.json(), (req, res) => {
 
 // --- Simple HTML page ---
 adminRouter.get("/", (req, res) => {
-  res.type("html").send(ADMIN_HTML.replaceAll("__SALON_NAME__", config.name));
+  res.type("html").send(ADMIN_HTML.replaceAll("__SALON_NAME__", config.name).replaceAll("__SALON_TZ__", config.timezone));
 });
 
 const ADMIN_HTML = `<!DOCTYPE html>
@@ -309,15 +309,35 @@ function fmt(iso) {
 }
 
 // --- Calendar ---
-let calMonth = new Date();
-calMonth.setDate(1);
-calMonth.setHours(0,0,0,0);
+const SALON_TZ = '__SALON_TZ__';
+
+// Appointment start_time values are ISO strings representing the salon's
+// local wall-clock time, encoded as if it were UTC (e.g. "11:00" PT is
+// stored as "...T11:00:00.000Z"). So we read/write them with the UTC
+// getters/setters below, never the local-timezone ones, to avoid the
+// browser's own timezone shifting the displayed time.
+function salonNowDate() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SALON_TZ, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date());
+  const map = {};
+  for (const p of parts) map[p.type] = p.value;
+  let hour = Number(map.hour);
+  if (hour === 24) hour = 0;
+  return new Date(Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), hour, Number(map.minute), Number(map.second)));
+}
+
+let calMonth = salonNowDate();
+calMonth.setUTCDate(1);
+calMonth.setUTCHours(0,0,0,0);
 let services = [];
 let editingId = null;
 
 function pad(n) { return String(n).padStart(2, '0'); }
-function toDateStr(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
-function toTimeStr(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function toDateStr(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate()); }
+function toTimeStr(d) { return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
 
 async function loadServices() {
   services = await api('/admin/api/services');
@@ -328,15 +348,15 @@ async function loadServices() {
 async function renderCalendar() {
   const grid = document.getElementById('cal-grid');
   const title = document.getElementById('cal-title');
-  title.textContent = calMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+  title.textContent = calMonth.toLocaleString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
 
   const firstOfMonth = new Date(calMonth);
-  const startDow = firstOfMonth.getDay();
+  const startDow = firstOfMonth.getUTCDay();
   const gridStart = new Date(firstOfMonth);
-  gridStart.setDate(gridStart.getDate() - startDow);
+  gridStart.setUTCDate(gridStart.getUTCDate() - startDow);
 
   const gridEnd = new Date(gridStart);
-  gridEnd.setDate(gridEnd.getDate() + 42); // 6 weeks
+  gridEnd.setUTCDate(gridEnd.getUTCDate() + 42); // 6 weeks
 
   const appts = await api('/admin/api/appointments?from=' + gridStart.toISOString() + '&to=' + gridEnd.toISOString());
   const byDay = {};
@@ -354,19 +374,19 @@ async function renderCalendar() {
     grid.appendChild(el);
   }
 
-  const today = toDateStr(new Date());
+  const today = toDateStr(salonNowDate());
   for (let i = 0; i < 42; i++) {
     const day = new Date(gridStart);
-    day.setDate(day.getDate() + i);
+    day.setUTCDate(day.getUTCDate() + i);
     const dateStr = toDateStr(day);
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
-    if (day.getMonth() !== calMonth.getMonth()) cell.classList.add('other-month');
+    if (day.getUTCMonth() !== calMonth.getUTCMonth()) cell.classList.add('other-month');
     if (dateStr === today) cell.classList.add('today');
 
     const dateRow = document.createElement('div');
     dateRow.className = 'cal-date';
-    dateRow.innerHTML = '<span>' + day.getDate() + '</span>';
+    dateRow.innerHTML = '<span>' + day.getUTCDate() + '</span>';
     const addBtn = document.createElement('button');
     addBtn.className = 'add-btn';
     addBtn.textContent = '+';
@@ -402,7 +422,7 @@ function openModal(appt, defaultDate) {
     document.getElementById('m-date').value = toDateStr(start);
     document.getElementById('m-time').value = toTimeStr(start);
   } else {
-    document.getElementById('m-date').value = defaultDate || toDateStr(new Date());
+    document.getElementById('m-date').value = defaultDate || toDateStr(salonNowDate());
     document.getElementById('m-time').value = '10:00';
   }
   document.getElementById('m-cancel-appt').style.display = appt ? 'inline-block' : 'none';
@@ -430,7 +450,7 @@ async function saveAppointment() {
     return;
   }
 
-  const start_time = new Date(date + 'T' + time + ':00').toISOString();
+  const start_time = new Date(date + 'T' + time + ':00Z').toISOString();
   const payload = { customer_name, customer_phone, service_id, start_time };
 
   try {
@@ -457,9 +477,9 @@ async function cancelAppointmentFromModal() {
   renderCalendar();
 }
 
-document.getElementById('cal-prev').onclick = () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); };
-document.getElementById('cal-next').onclick = () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); };
-document.getElementById('cal-add').onclick = () => openModal(null, toDateStr(new Date()));
+document.getElementById('cal-prev').onclick = () => { calMonth.setUTCMonth(calMonth.getUTCMonth() - 1); renderCalendar(); };
+document.getElementById('cal-next').onclick = () => { calMonth.setUTCMonth(calMonth.getUTCMonth() + 1); renderCalendar(); };
+document.getElementById('cal-add').onclick = () => openModal(null, toDateStr(salonNowDate()));
 document.getElementById('m-close').onclick = closeModal;
 document.getElementById('m-save').onclick = saveAppointment;
 document.getElementById('m-cancel-appt').onclick = cancelAppointmentFromModal;
