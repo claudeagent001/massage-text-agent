@@ -1,6 +1,6 @@
 import db from "../db.js";
 import config from "../../config.json" with { type: "json" };
-import { getOpenSlots, getService } from "../availability.js";
+import { getOpenSlots, getService, salonNow } from "../availability.js";
 import { sendSms } from "../twilioClient.js";
 
 // Tool definitions sent to Claude
@@ -85,9 +85,9 @@ function checkAvailability({ service_id, date }) {
   const service = getService(service_id);
   if (!service) return { error: `Unknown service_id: ${service_id}` };
 
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + config.booking.max_days_ahead);
-  const requested = new Date(date + "T00:00:00");
+  const maxDate = salonNow();
+  maxDate.setUTCDate(maxDate.getUTCDate() + config.booking.max_days_ahead);
+  const requested = new Date(date + "T00:00:00Z");
   if (requested > maxDate) {
     return { error: `We only take bookings up to ${config.booking.max_days_ahead} days in advance.` };
   }
