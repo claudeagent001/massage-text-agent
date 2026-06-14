@@ -2,6 +2,7 @@ import db from "../db.js";
 import config from "../../config.json" with { type: "json" };
 import { getOpenSlots, getService, salonNow } from "../availability.js";
 import { sendSms } from "../twilioClient.js";
+import { createEvent, deleteEvent } from "../googleCalendar.js";
 
 // Tool definitions sent to Claude
 export const toolDefinitions = [
@@ -101,7 +102,7 @@ function checkAvailability({ service_id, date }) {
   };
 }
 
-function createAppointment({ service_id, start_time, customer_name }, ctx) {
+async function createAppointment({ service_id, start_time, customer_name }, ctx) {
   const service = getService(service_id);
   if (!service) return { error: `Unknown service_id: ${service_id}` };
 
@@ -127,9 +128,24 @@ function createAppointment({ service_id, start_time, customer_name }, ctx) {
     )
     .run(ctx.customerPhone, customer_name || null, service.id, service.name, start.toISOString(), end.toISOString());
 
+  const appointment_id = result.lastInsertRowid;
+
+  // Best-effort sync to Google Calendar, if configured.
+  const eventId = await createEvent({
+    customer_phone: ctx.customerPhone,
+    customer_name: customer_name || null,
+    service_name: service.name,
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    created_by: "agent",
+  });
+  if (eventId) {
+    db.prepare(`UPDATE appointments SET google_event_id = ? WHERE id = ?`).run(eventId, appointment_id);
+  }
+
   return {
     success: true,
-    appointment_id: result.lastInsertRowid,
+    appointment_id,
     service: service.name,
     start_time: start.toISOString(),
     end_time: end.toISOString(),
@@ -137,7 +153,7 @@ function createAppointment({ service_id, start_time, customer_name }, ctx) {
   };
 }
 
-function cancelAppointment({ appointment_id }, ctx) {
+async function cancelAppointment({ appointment_id }, ctx) {
   const appt = db
     .prepare(`SELECT * FROM appointments WHERE id = ? AND customer_phone = ?`)
     .get(appointment_id, ctx.customerPhone);
@@ -145,6 +161,7 @@ function cancelAppointment({ appointment_id }, ctx) {
   if (appt.status === "cancelled") return { error: "This appointment is already cancelled." };
 
   db.prepare(`UPDATE appointments SET status = 'cancelled' WHERE id = ?`).run(appointment_id);
+  if (appt.google_event_id) await deleteEvent(appt.google_event_id);
   return { success: true, appointment_id, cancelled_service: appt.service_name, cancelled_start: appt.start_time };
 }
 

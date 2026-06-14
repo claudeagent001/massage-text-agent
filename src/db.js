@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   status         TEXT NOT NULL DEFAULT 'confirmed', -- confirmed | cancelled
   reminder_sent  INTEGER NOT NULL DEFAULT 0,
   created_by     TEXT NOT NULL DEFAULT 'agent', -- agent | owner
+  google_event_id TEXT, -- id of the synced Google Calendar event, if any
   created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -43,6 +44,9 @@ CREATE INDEX IF NOT EXISTS idx_appt_time ON appointments (start_time);
 const apptCols = db.prepare(`PRAGMA table_info(appointments)`).all().map((c) => c.name);
 if (!apptCols.includes("created_by")) {
   db.exec(`ALTER TABLE appointments ADD COLUMN created_by TEXT NOT NULL DEFAULT 'agent'`);
+}
+if (!apptCols.includes("google_event_id")) {
+  db.exec(`ALTER TABLE appointments ADD COLUMN google_event_id TEXT`);
 }
 
 export default db;

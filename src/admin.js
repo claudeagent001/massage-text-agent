@@ -3,6 +3,7 @@ import db from "./db.js";
 import config from "../config.json" with { type: "json" };
 import { sendSms } from "./twilioClient.js";
 import { getService } from "./availability.js";
+import { createEvent, updateEvent, deleteEvent } from "./googleCalendar.js";
 
 export const adminRouter = express.Router();
 
@@ -59,7 +60,7 @@ adminRouter.get("/api/services", (req, res) => {
 });
 
 // Owner creates a new appointment manually
-adminRouter.post("/api/appointments", express.json(), (req, res) => {
+adminRouter.post("/api/appointments", express.json(), async (req, res) => {
   const { customer_name, customer_phone, service_id, start_time } = req.body || {};
   if (!customer_phone || !service_id || !start_time) {
     return res.status(400).json({ error: "customer_phone, service_id, and start_time are required" });
@@ -86,11 +87,25 @@ adminRouter.post("/api/appointments", express.json(), (req, res) => {
     )
     .run(customer_phone, customer_name || null, service.id, service.name, start.toISOString(), end.toISOString());
 
-  res.json({ success: true, appointment_id: result.lastInsertRowid });
+  const appointment_id = result.lastInsertRowid;
+
+  const eventId = await createEvent({
+    customer_phone,
+    customer_name: customer_name || null,
+    service_name: service.name,
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    created_by: "owner",
+  });
+  if (eventId) {
+    db.prepare(`UPDATE appointments SET google_event_id = ? WHERE id = ?`).run(eventId, appointment_id);
+  }
+
+  res.json({ success: true, appointment_id });
 });
 
 // Owner edits/reschedules an existing appointment
-adminRouter.put("/api/appointments/:id", express.json(), (req, res) => {
+adminRouter.put("/api/appointments/:id", express.json(), async (req, res) => {
   const id = req.params.id;
   const appt = db.prepare(`SELECT * FROM appointments WHERE id = ?`).get(id);
   if (!appt) return res.status(404).json({ error: "Appointment not found" });
@@ -120,6 +135,22 @@ adminRouter.put("/api/appointments/:id", express.json(), (req, res) => {
      SET customer_name = ?, customer_phone = ?, service_id = ?, service_name = ?, start_time = ?, end_time = ?
      WHERE id = ?`
   ).run(customer_name || null, customer_phone, service.id, service.name, start.toISOString(), end.toISOString(), id);
+
+  const updatedAppt = {
+    customer_phone,
+    customer_name: customer_name || null,
+    service_name: service.name,
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    created_by: appt.created_by,
+  };
+
+  if (appt.google_event_id) {
+    await updateEvent(appt.google_event_id, updatedAppt);
+  } else {
+    const eventId = await createEvent(updatedAppt);
+    if (eventId) db.prepare(`UPDATE appointments SET google_event_id = ? WHERE id = ?`).run(eventId, id);
+  }
 
   res.json({ success: true });
 });
@@ -192,7 +223,7 @@ adminRouter.post("/api/resume", express.json(), (req, res) => {
 });
 
 // Cancel an appointment (admin override, no phone check)
-adminRouter.post("/api/cancel", express.json(), (req, res) => {
+adminRouter.post("/api/cancel", express.json(), async (req, res) => {
   const { appointment_id } = req.body || {};
   if (!appointment_id) return res.status(400).json({ error: "appointment_id required" });
 
@@ -200,6 +231,7 @@ adminRouter.post("/api/cancel", express.json(), (req, res) => {
   if (!appt) return res.status(404).json({ error: "Appointment not found" });
 
   db.prepare(`UPDATE appointments SET status = 'cancelled' WHERE id = ?`).run(appointment_id);
+  if (appt.google_event_id) await deleteEvent(appt.google_event_id);
   res.json({ success: true });
 });
 

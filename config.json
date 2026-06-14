@@ -36,6 +36,9 @@
     "open_buffer_min": 0,
     "reminder_hours_before": 3
   },
+  "google_calendar": {
+    "calendar_id": ""
+  },
   "handoff": {
     "owner_phone": "+14692694469",
     "escalation_keywords": [
