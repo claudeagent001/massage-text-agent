@@ -1,0 +1,46 @@
+{
+  "name": "Serenity Massage",
+  "timezone": "America/Los_Angeles",
+  "address": "456 Oak Ave, Springfield",
+  "phone_display": "(555) 123-4567",
+  "hours": {
+    "mon": "10:00-20:00",
+    "tue": "10:00-20:00",
+    "wed": "10:00-20:00",
+    "thu": "10:00-20:00",
+    "fri": "10:00-21:00",
+    "sat": "10:00-21:00",
+    "sun": "11:00-18:00"
+  },
+  "services": [
+    { "id": "swedish60", "name": "Swedish Massage (60 min)", "duration_min": 60, "price": 80 },
+    { "id": "swedish90", "name": "Swedish Massage (90 min)", "duration_min": 90, "price": 110 },
+    { "id": "deep60", "name": "Deep Tissue Massage (60 min)", "duration_min": 60, "price": 90 },
+    { "id": "deep90", "name": "Deep Tissue Massage (90 min)", "duration_min": 90, "price": 125 },
+    { "id": "hotstone60", "name": "Hot Stone Massage (60 min)", "duration_min": 60, "price": 100 },
+    { "id": "couples60", "name": "Couples Massage (60 min)", "duration_min": 60, "price": 180 }
+  ],
+  "policies": {
+    "cancellation": "Please give at least 4 hours notice to cancel or reschedule, otherwise a 50% fee may apply.",
+    "late_arrival": "We can hold your appointment for up to 15 minutes past the start time.",
+    "walk_ins": "Walk-ins are welcome based on availability, but booking ahead is recommended."
+  },
+  "faq": [
+    { "q": "Do you accept walk-ins?", "a": "Yes, subject to availability, but we recommend booking ahead." },
+    { "q": "What forms of payment do you accept?", "a": "Cash, all major credit cards, and Venmo." },
+    { "q": "Is gratuity included?", "a": "No, gratuity is not included and is appreciated but optional." }
+  ],
+  "booking": {
+    "slot_increment_min": 30,
+    "max_days_ahead": 21,
+    "open_buffer_min": 0,
+    "reminder_hours_before": 3
+  },
+  "handoff": {
+    "owner_phone": "+15559876543",
+    "escalation_keywords": [
+      "refund", "complaint", "lawyer", "police", "injury", "injured",
+      "allergic", "reaction", "manager", "speak to a person", "human"
+    ]
+  }
+}
