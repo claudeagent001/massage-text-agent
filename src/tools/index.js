@@ -122,8 +122,8 @@ function createAppointment({ service_id, start_time, customer_name }, ctx) {
 
   const result = db
     .prepare(
-      `INSERT INTO appointments (customer_phone, customer_name, service_id, service_name, start_time, end_time, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'confirmed')`
+      `INSERT INTO appointments (customer_phone, customer_name, service_id, service_name, start_time, end_time, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, 'confirmed', 'agent')`
     )
     .run(ctx.customerPhone, customer_name || null, service.id, service.name, start.toISOString(), end.toISOString());
 

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   end_time       TEXT NOT NULL,
   status         TEXT NOT NULL DEFAULT 'confirmed', -- confirmed | cancelled
   reminder_sent  INTEGER NOT NULL DEFAULT 0,
+  created_by     TEXT NOT NULL DEFAULT 'agent', -- agent | owner
   created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -37,5 +38,11 @@ CREATE TABLE IF NOT EXISTS conversation_state (
 
 CREATE INDEX IF NOT EXISTS idx_appt_time ON appointments (start_time);
 `);
+
+// Migration: add created_by column if upgrading from an older schema
+const apptCols = db.prepare(`PRAGMA table_info(appointments)`).all().map((c) => c.name);
+if (!apptCols.includes("created_by")) {
+  db.exec(`ALTER TABLE appointments ADD COLUMN created_by TEXT NOT NULL DEFAULT 'agent'`);
+}
 
 export default db;
