@@ -9,6 +9,7 @@ const script = [
   "hi, are you open today?",
   "do you have anything for a 60 min deep tissue tomorrow afternoon?",
   "the 3pm one sounds good, can you book that for John?",
+  "yes that's correct, please book it",
 ];
 
 for (const msg of script) {

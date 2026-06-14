@@ -77,6 +77,30 @@ customer, and marks `reminder_sent = 1`. Run it on a schedule, e.g. with cron:
 */15 * * * * cd /path/to/massage-text-agent && node src/reminders.js >> reminders.log 2>&1
 ```
 
+## Google Calendar sync (optional)
+
+Appointments (created by the agent or the owner) can be mirrored to a Google Calendar so
+staff can see them on their phones, even if you're not using the admin dashboard as the
+primary calendar.
+
+1. In [Google Cloud Console](https://console.cloud.google.com), create a project and
+   enable the **Google Calendar API**.
+2. Create a **Service Account** and download its JSON key.
+3. Share the target Google Calendar with the service account's email (found in the JSON
+   key, looks like `...@...iam.gserviceaccount.com`), with **"Make changes to events"**
+   permission.
+4. Get the **Calendar ID** from that calendar's settings ("Integrate calendar" section).
+5. In `config.json`, set `google_calendar.calendar_id` to that ID.
+6. In `.env`, set either:
+   - `GOOGLE_SERVICE_ACCOUNT_JSON` — the full contents of the downloaded JSON key, as a
+     single-line string, or
+   - `GOOGLE_SERVICE_ACCOUNT_KEY_FILE` — a path to the JSON key file.
+
+If `calendar_id` is empty or no credentials are provided, the app runs exactly as before
+(no calendar sync, no errors). When enabled, `create_appointment`, `cancel_appointment`,
+and the admin add/edit/cancel routes will create/update/delete a matching event on that
+calendar, storing its event id in `appointments.google_event_id`.
+
 ## Notes / next steps
 
 - Multi-location/multi-tenant: this prototype is single-tenant (one `config.json`,

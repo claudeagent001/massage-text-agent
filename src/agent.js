@@ -16,7 +16,7 @@ function getRecentMessages(phone) {
   const rows = db
     .prepare(
       `SELECT direction, sent_by, body FROM messages
-       WHERE customer_phone = ? ORDER BY created_at DESC LIMIT ?`
+       WHERE customer_phone = ? ORDER BY id DESC LIMIT ?`
     )
     .all(phone, HISTORY_LIMIT);
   return rows.reverse();

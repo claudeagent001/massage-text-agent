@@ -1,0 +1,97 @@
+{
+  "name": "Hair Lounge NYC",
+  "timezone": "America/New_York",
+  "address": "24 Maiden Ln, 2nd Floor, New York, NY 10038",
+  "phone_display": "(646) 484-6401",
+  "email": "info@hairloungenyc.com",
+  "hours": {
+    "mon": "10:00-19:00",
+    "tue": "10:00-19:00",
+    "wed": "10:00-19:00",
+    "thu": "10:00-19:00",
+    "fri": "10:00-17:00",
+    "sat": "10:00-17:00",
+    "sun": "10:00-17:00"
+  },
+  "services": [
+    { "id": "bang_trim", "name": "Bang Trim", "duration_min": 15, "price": 15 },
+    { "id": "womens_haircut", "name": "Women's Haircut", "duration_min": 45, "price": 70 },
+    { "id": "blowout", "name": "Blow Out", "duration_min": 45, "price": 55 },
+    { "id": "ladies_cut_style", "name": "Ladies Haircut and Style", "duration_min": 60, "price": 105 },
+    { "id": "single_process_full", "name": "Single Process (whole head)", "duration_min": 90, "price": 145 },
+    { "id": "single_process_roots", "name": "Single Process (roots only)", "duration_min": 60, "price": 90 },
+    { "id": "double_process", "name": "Double Process", "duration_min": 150, "price": 250 },
+    { "id": "partial_highlights", "name": "Partial Highlights", "duration_min": 120, "price": 160 },
+    { "id": "full_highlights", "name": "Full Head Highlights", "duration_min": 180, "price": 360 },
+    { "id": "partial_balayage", "name": "Partial Balayage", "duration_min": 120, "price": 160 },
+    { "id": "half_balayage", "name": "Half Head Balayage", "duration_min": 150, "price": 270 },
+    { "id": "full_balayage", "name": "Full Head Balayage", "duration_min": 180, "price": 360 },
+    { "id": "air_touch_balayage", "name": "Air Touch Balayage", "duration_min": 210, "price": 450 },
+    { "id": "clear_gloss", "name": "Clear Gloss", "duration_min": 30, "price": 60 },
+    { "id": "color_gloss", "name": "Color Gloss", "duration_min": 30, "price": 65 },
+    { "id": "keratin_treatment", "name": "Keratin Treatment", "duration_min": 120, "price": 270 },
+    { "id": "organic_keratin", "name": "Organic Keratin Treatment", "duration_min": 150, "price": 370 },
+    { "id": "keratin_express", "name": "Keratin Express Smoothing System", "duration_min": 60, "price": 170 },
+    { "id": "rejuveplex", "name": "Rejuveplex Treatment (with Blowout)", "duration_min": 60, "price": 120 },
+    { "id": "mens_haircut", "name": "Men's Haircut", "duration_min": 30, "price": 45 },
+    { "id": "long_hair_scissor_cut", "name": "Long Hair Scissor Cut", "duration_min": 60, "price": 62 },
+    { "id": "buzz_cut", "name": "Buzz Cut", "duration_min": 20, "price": 35 },
+    { "id": "beard_trim", "name": "Beard Trim", "duration_min": 15, "price": 30 },
+    { "id": "shave", "name": "Shave", "duration_min": 30, "price": 45 },
+    { "id": "haircut_beard_trim", "name": "Haircut & Beard Trim", "duration_min": 45, "price": 65 },
+    { "id": "haircut_shave", "name": "Haircut & Shave", "duration_min": 60, "price": 80 },
+    { "id": "royal_lounge_shave", "name": "Royal Lounge Shave (with Facial)", "duration_min": 45, "price": 75 },
+    { "id": "mens_maintenance", "name": "Maintenance", "duration_min": 20, "price": 35 },
+    { "id": "facial", "name": "Facial", "duration_min": 30, "price": 45 },
+    { "id": "hand_massage", "name": "Machine Hand Vibrating Massage", "duration_min": 15, "price": 25 },
+    { "id": "ear_wax", "name": "Ear Wax - Hair Removal", "duration_min": 15, "price": 20 },
+    { "id": "nose_wax", "name": "Nose Wax", "duration_min": 10, "price": 20 },
+    { "id": "hair_color_consultation", "name": "Hair Color Consultation", "duration_min": 15, "price": 0 },
+    { "id": "redo", "name": "Redo", "duration_min": 30, "price": 0 },
+    { "id": "eyebrows_threading", "name": "Eyebrows (Threading)", "duration_min": 15, "price": 20 },
+    { "id": "brows_coloring", "name": "Brows Coloring", "duration_min": 15, "price": 15 },
+    { "id": "makeup_application", "name": "Makeup Application", "duration_min": 60, "price": 175 },
+    { "id": "bride_makeup_application", "name": "Bride Makeup Application", "duration_min": 90, "price": 325 },
+    { "id": "tape_ins", "name": "Tape-ins", "duration_min": 120, "price": 180 },
+    { "id": "hair_extractions_remover", "name": "Hair Extractions Remover", "duration_min": 60, "price": 160 },
+    { "id": "flat_iron_curly_iron", "name": "Flat Iron or Curly Iron", "duration_min": 30, "price": 30 },
+    { "id": "hair_style_updo", "name": "Hair Style & Updo", "duration_min": 60, "price": 200 },
+    { "id": "deep_conditioner", "name": "Deep Conditioner", "duration_min": 30, "price": 40 },
+    { "id": "blowout_with_extensions", "name": "Blowout With Hair Extensions", "duration_min": 60, "price": 65 },
+    { "id": "color_correction", "name": "Color Correction", "duration_min": 120, "price": 390 },
+    { "id": "in_person_consultation", "name": "In-Person Visit - Visiting in Person to Decide", "duration_min": 15, "price": 0 }
+  ],
+  "policies": {
+    "cancellation": "Please give at least 4 hours notice to cancel or reschedule, otherwise a fee may apply.",
+    "late_arrival": "We can hold your appointment for up to 15 minutes past the start time.",
+    "walk_ins": "Walk-ins are welcome based on availability, but booking ahead is recommended.",
+    "booking_flow": "Before booking, ask the customer whether this is for an Individual Appointment or a Group Appointment (for themselves, friends, and family). Only mention the Gift Card option if the customer asks about it explicitly - direct them to the website (https://hairloungenyc.com/) to purchase a gift card.",
+    "pricing_note": "Some services are priced as ranges or 'price upon consultation' (e.g. color correction, blowout with extensions, balayage, highlights, deep conditioner). These can still be booked normally - quote the listed starting price, but let the customer know the final price depends on hair length/thickness/amount of extensions and will be confirmed in person at the salon.",
+    "wedding_bridal": "Hair Lounge NYC does not book wedding/bridal services (hair or makeup, day-of or trial) via text. If a customer asks about bridal/wedding services, tell them to call the salon at (646) 484-6401 to speak with an in-store associate.",
+    "unlisted_service": "If a customer asks about a service that isn't in the services list (and isn't a wedding/bridal service), let them know it's not something you can book directly via text, but they're welcome to call (646) 484-6401 or stop by the salon at 24 Maiden Ln, 2nd Floor, New York, NY 10038 to discuss it with an in-store associate.",
+    "in_person_visit": "If a customer wants to come in person to decide on a service (e.g. for an unlisted service, or because they're unsure what they want), offer to book them an 'In-Person Visit - Visiting in Person to Decide' appointment (service_id: in_person_consultation) for a time that works for them. This reserves a slot on the calendar so staff know to expect them, with no price quoted - the actual service and price will be determined in person."
+  },
+  "faq": [
+    { "q": "Do you accept walk-ins?", "a": "Yes, subject to availability, but we recommend booking ahead." },
+    { "q": "Where are you located?", "a": "24 Maiden Ln, 2nd Floor, New York, NY 10038." },
+    { "q": "What are your hours?", "a": "Sun: 10AM-5PM, Mon-Thu: 10AM-7PM, Fri-Sat: 10AM-5PM." },
+    { "q": "Do you offer gift cards?", "a": "Yes! You can purchase a gift card on our website at hairloungenyc.com." },
+    { "q": "Do you offer wedding or bridal hair/makeup?", "a": "Please call us at (646) 484-6401 to speak with an in-store associate about bridal services." }
+  ],
+  "booking": {
+    "slot_increment_min": 30,
+    "max_days_ahead": 21,
+    "open_buffer_min": 0,
+    "reminder_hours_before": 3
+  },
+  "google_calendar": {
+    "calendar_id": ""
+  },
+  "handoff": {
+    "owner_phone": "+14692694469",
+    "escalation_keywords": [
+      "refund", "complaint", "lawyer", "police", "injury", "injured",
+      "allergic", "reaction", "manager", "speak to a person", "human"
+    ]
+  }
+}
