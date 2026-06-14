@@ -119,7 +119,7 @@ adminRouter.post("/api/cancel", express.json(), (req, res) => {
 
 // --- Simple HTML page ---
 adminRouter.get("/", (req, res) => {
-  res.type("html").send(ADMIN_HTML.replace("__SALON_NAME__", config.name));
+  res.type("html").send(ADMIN_HTML.replaceAll("__SALON_NAME__", config.name));
 });
 
 const ADMIN_HTML = `<!DOCTYPE html>
