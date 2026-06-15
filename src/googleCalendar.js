@@ -59,6 +59,70 @@ function toGoogleDateTime(isoString) {
   return { dateTime, timeZone: config.timezone };
 }
 
+// Returns the salon timezone's UTC offset (in minutes, local = UTC + offset)
+// for the instant `date` represents.
+function tzOffsetMinutes(date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: config.timezone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const map = {};
+  for (const p of parts) map[p.type] = p.value;
+  let hour = Number(map.hour);
+  if (hour === 24) hour = 0;
+  const asUTC = Date.UTC(
+    Number(map.year), Number(map.month) - 1, Number(map.day), hour, Number(map.minute), Number(map.second)
+  );
+  return (asUTC - date.getTime()) / 60000;
+}
+
+// Converts a "fake UTC" Date (wall-clock time in the salon's timezone,
+// encoded with a Z suffix — see availability.js) into the real UTC instant.
+function salonLocalToRealUTC(fakeUtcDate) {
+  const offset = tzOffsetMinutes(fakeUtcDate);
+  return new Date(fakeUtcDate.getTime() - offset * 60000);
+}
+
+// Converts a real UTC Date into a "fake UTC" Date whose fields match the
+// salon's local wall-clock time, for consistency with availability.js.
+function realUTCToSalonLocal(utcDate) {
+  const offset = tzOffsetMinutes(utcDate);
+  return new Date(utcDate.getTime() + offset * 60000);
+}
+
+// Returns busy intervals on the synced Google Calendar for the given salon-local
+// date (YYYY-MM-DD), as { start, end } "fake UTC" ISO strings matching the
+// convention used in availability.js. Returns [] if sync isn't enabled or on error.
+export async function getBusyIntervals(dateStr) {
+  const client = getClient();
+  if (!client) return [];
+  try {
+    const dayStart = salonLocalToRealUTC(new Date(dateStr + "T00:00:00Z"));
+    const dayEnd = salonLocalToRealUTC(new Date(dateStr + "T23:59:59Z"));
+    const res = await client.freebusy.query({
+      requestBody: {
+        timeMin: dayStart.toISOString(),
+        timeMax: dayEnd.toISOString(),
+        items: [{ id: calendarId }],
+      },
+    });
+    const busy = res.data.calendars?.[calendarId]?.busy || [];
+    return busy.map((b) => ({
+      start: realUTCToSalonLocal(new Date(b.start)).toISOString(),
+      end: realUTCToSalonLocal(new Date(b.end)).toISOString(),
+    }));
+  } catch (err) {
+    console.error("[googleCalendar] getBusyIntervals failed:", err.message);
+    return [];
+  }
+}
+
 function appointmentToEvent(appt) {
   return {
     summary: `${appt.service_name} — ${appt.customer_name || appt.customer_phone}`,

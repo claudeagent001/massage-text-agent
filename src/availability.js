@@ -1,5 +1,6 @@
 import db from "./db.js";
 import config from "../config.json" with { type: "json" };
+import { getBusyIntervals } from "./googleCalendar.js";
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
@@ -43,7 +44,7 @@ export function salonNow() {
 
 // Returns array of { start, end } ISO strings for open slots on a given date
 // that can fit `durationMin`. `dateStr` is YYYY-MM-DD in the salon's local time.
-export function getOpenSlots(dateStr, durationMin) {
+export async function getOpenSlots(dateStr, durationMin) {
   // Treat the date as midnight in the salon's timezone, represented as a
   // "fake UTC" Date (see salonNow above) so all arithmetic stays consistent.
   const date = new Date(dateStr + "T00:00:00Z");
@@ -76,6 +77,13 @@ export function getOpenSlots(dateStr, durationMin) {
     end: new Date(a.end_time),
   }));
 
+  // Also block out anything busy on the synced Google Calendar (e.g. manually
+  // added events), so the agent never offers a slot that's already taken there.
+  const calendarBusy = await getBusyIntervals(dateStr);
+  for (const b of calendarBusy) {
+    busy.push({ start: new Date(b.start), end: new Date(b.end) });
+  }
+
   const free = slots.filter((slot) => {
     return !busy.some((b) => slot.start < b.end && slot.end > b.start);
   });
@@ -94,13 +102,13 @@ export function getService(serviceId) {
 // Searches forward from `fromDateStr` (YYYY-MM-DD, inclusive) for the next
 // open slot that fits `durationMin`, looking up to `maxDaysAhead` days.
 // Returns { start, end } (ISO strings) or null if nothing is found.
-export function getNextAvailableSlot(durationMin, fromDateStr, maxDaysAhead) {
+export async function getNextAvailableSlot(durationMin, fromDateStr, maxDaysAhead) {
   const start = new Date(fromDateStr + "T00:00:00Z");
   for (let i = 0; i <= maxDaysAhead; i++) {
     const d = new Date(start);
     d.setUTCDate(d.getUTCDate() + i);
     const dateStr = d.toISOString().slice(0, 10);
-    const slots = getOpenSlots(dateStr, durationMin);
+    const slots = await getOpenSlots(dateStr, durationMin);
     if (slots.length > 0) return slots[0];
   }
   return null;

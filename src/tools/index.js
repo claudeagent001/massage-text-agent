@@ -2,7 +2,7 @@ import db from "../db.js";
 import config from "../../config.json" with { type: "json" };
 import { getOpenSlots, getNextAvailableSlot, getService, salonNow } from "../availability.js";
 import { sendSms } from "../twilioClient.js";
-import { createEvent, deleteEvent } from "../googleCalendar.js";
+import { createEvent, deleteEvent, getBusyIntervals } from "../googleCalendar.js";
 
 // Tool definitions sent to Claude
 export const toolDefinitions = [
@@ -82,7 +82,7 @@ export async function runTool(name, input, ctx) {
   }
 }
 
-function checkAvailability({ service_id, date }) {
+async function checkAvailability({ service_id, date }) {
   const service = getService(service_id);
   if (!service) return { error: `Unknown service_id: ${service_id}` };
 
@@ -93,12 +93,12 @@ function checkAvailability({ service_id, date }) {
     return { error: `We only take bookings up to ${config.booking.max_days_ahead} days in advance.` };
   }
 
-  const slots = getOpenSlots(date, service.duration_min);
+  const slots = await getOpenSlots(date, service.duration_min);
 
   let next_available = undefined;
   if (slots.length === 0) {
     // Look for the closest open slot on this day or any of the following days.
-    const next = getNextAvailableSlot(service.duration_min, date, config.booking.max_days_ahead);
+    const next = await getNextAvailableSlot(service.duration_min, date, config.booking.max_days_ahead);
     next_available = next ? next.start : null;
   }
 
@@ -128,6 +128,17 @@ async function createAppointment({ service_id, start_time, customer_name }, ctx)
     .get(end.toISOString(), start.toISOString());
   if (conflict) {
     return { error: "That slot was just booked by someone else. Please choose another time." };
+  }
+
+  // Also check the synced Google Calendar for manually-added events that
+  // might overlap (e.g. someone blocked off this time directly on the calendar).
+  const dateStr = start_time.slice(0, 10);
+  const calendarBusy = await getBusyIntervals(dateStr);
+  const calendarConflict = calendarBusy.some(
+    (b) => start < new Date(b.end) && end > new Date(b.start)
+  );
+  if (calendarConflict) {
+    return { error: "That slot conflicts with something on the calendar. Please choose another time." };
   }
 
   const result = db
