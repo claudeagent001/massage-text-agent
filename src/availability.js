@@ -90,3 +90,18 @@ export function getOpenSlots(dateStr, durationMin) {
 export function getService(serviceId) {
   return config.services.find((s) => s.id === serviceId);
 }
+
+// Searches forward from `fromDateStr` (YYYY-MM-DD, inclusive) for the next
+// open slot that fits `durationMin`, looking up to `maxDaysAhead` days.
+// Returns { start, end } (ISO strings) or null if nothing is found.
+export function getNextAvailableSlot(durationMin, fromDateStr, maxDaysAhead) {
+  const start = new Date(fromDateStr + "T00:00:00Z");
+  for (let i = 0; i <= maxDaysAhead; i++) {
+    const d = new Date(start);
+    d.setUTCDate(d.getUTCDate() + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const slots = getOpenSlots(dateStr, durationMin);
+    if (slots.length > 0) return slots[0];
+  }
+  return null;
+}

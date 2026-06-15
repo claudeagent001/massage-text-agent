@@ -1,6 +1,6 @@
 import db from "../db.js";
 import config from "../../config.json" with { type: "json" };
-import { getOpenSlots, getService, salonNow } from "../availability.js";
+import { getOpenSlots, getNextAvailableSlot, getService, salonNow } from "../availability.js";
 import { sendSms } from "../twilioClient.js";
 import { createEvent, deleteEvent } from "../googleCalendar.js";
 
@@ -94,11 +94,20 @@ function checkAvailability({ service_id, date }) {
   }
 
   const slots = getOpenSlots(date, service.duration_min);
+
+  let next_available = undefined;
+  if (slots.length === 0) {
+    // Look for the closest open slot on this day or any of the following days.
+    const next = getNextAvailableSlot(service.duration_min, date, config.booking.max_days_ahead);
+    next_available = next ? next.start : null;
+  }
+
   return {
     service: service.name,
     date,
     available_start_times: slots.map((s) => s.start),
     note: slots.length === 0 ? "No open slots that day for this service." : undefined,
+    next_available,
   };
 }
 
